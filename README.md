@@ -1,8 +1,8 @@
 # AdMuing
 
-this is Android Version， IOS is [here](链接)
+this is Android Version， IOS is [here](https://github.com/admuing/admuing-iOS)
 
-[中文版说明](链接)
+[中文版说明](https://github.com/admuing/admuing-android/tree/master/CN)
 
 ## About
 
