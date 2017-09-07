@@ -2,6 +2,8 @@
 
 this is Android Version， IOS is [here](链接)
 
+[中文版说明](链接)
+
 ## About
 
 AdMuing is a video advertising Danmaku enhancement tool,Is an open source project created by years of research google & facebbok creative team，The purpose is to change the existing video advertising style is single，the problem of globalization is difficult to solve，With AdMuing, just a few lines of code can make the original video ads more vivid, interesting and interactive，Enhance the quality of developers APP ad, so that video ads more attractive to users.
@@ -78,7 +80,6 @@ support@admuing.com
 -   Android Studio 1.5 or higher
 - 	Target Android API level 23 or higher
 - 	MinSdkVersion level 19 or higher
-- 	Recommended: create an Adtiming account and register an app.
 
 ## Support
 
