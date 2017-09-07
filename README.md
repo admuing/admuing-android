@@ -44,11 +44,11 @@ AdMuing SDK Danmaku SDK call API Danmaku display, according to user requests, IP
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     
-### add your appId in 'application'
+### add your appKey in 'application'
  
     <application>
     ...
-    <meta-data android:name="appId" android:value="your appId" />
+    <meta-data android:name="appKey" android:value="your appKey" />
     ...
     </application>
 
