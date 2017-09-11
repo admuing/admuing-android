@@ -8,6 +8,10 @@ AdMuing是一个视频广告弹幕增强工具，是由多年研究Google,Facebo
 
 ## 示例
 
+![image](https://github.com/admuing/admuing-android/blob/master/screenshots/1.jpg)
+
+![image](https://github.com/admuing/admuing-android/blob/master/screenshots/2.png)
+
 源码： **danmaku**
 
 示例项目：**danmakudemo** 包括unity,vungle示例
