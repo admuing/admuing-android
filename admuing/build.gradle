@@ -62,7 +62,7 @@ uploadArchives {
             pom.project {
                 name 'admuing'
                 packaging 'aar'
-                description 'This project is build to let the view looks like a material design widget when touched. '
+                description 'admuing danmaku'
                 url 'https://github.com/admuing/admuing-android'
 
                 scm {
