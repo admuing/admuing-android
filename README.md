@@ -39,7 +39,7 @@ AdMuing SDK Danmaku SDK call API Danmaku display, according to user requests, IP
 
 ## How to use
 
-### Register [address](http://register.admuing.com?_blank) to get AppKey
+### Register [address](http://register.admuing.com/) to get AppKey
 
 ### dependencies 
     
