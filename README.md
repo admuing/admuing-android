@@ -41,7 +41,7 @@ AdMuing SDK Danmaku SDK call API Danmaku display, according to user requests, IP
 
 ### Register [address](http://register.admuing.com/)(url?_blank) to get 
 
-[example](http://yinping4256.github.io){:target="_blank"}
+[百度](http://www.baidu.com){:target="_blank"}
 
 ### dependencies 
     
