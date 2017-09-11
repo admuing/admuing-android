@@ -39,7 +39,7 @@ AdMuing SDK Danmaku SDK call API Danmaku display, according to user requests, IP
 
 ## How to use
 
-### Register [address](http://register.admuing.com/){:target="_blank"} to get 
+### Register [address](http://register.admuing.com/)(url?_blank) to get 
 
 [example](http://yinping4256.github.io){:target="_blank"}
 
