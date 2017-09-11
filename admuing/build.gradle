@@ -32,3 +32,60 @@ android {
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
 }
+
+apply plugin: 'maven'
+apply plugin: 'signing'
+
+signing {
+    sign configurations.archives
+}
+
+group = "com.github.admuing"
+archivesBaseName = "admuing"
+version = "1.0"
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            beforeDeployment {
+                MavenDeployment deployment -> signing.signPom(deployment);
+            }
+
+            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+                authentication(userName: ossrhUsername, password: ossrhPassword)
+            }
+
+            snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
+                authentication(userName: ossrhUsername, password: ossrhPassword)
+            }
+
+            pom.project {
+                name 'admuing'
+                packaging 'aar'
+                description 'This project is build to let the view looks like a material design widget when touched. '
+                url 'https://github.com/admuing/admuing-android'
+
+                scm {
+                    connection 'scm:git:https://github.com/admuing/admuing-android.git'
+                    developerConnection 'scm:git:https://github.com/admuing/admuing-android.git'
+                    url 'https://github.com/admuing/admuing-android.git'
+                }
+
+                licenses {
+                    license {
+                        name 'The Apache License, Version 2.0'
+                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id 'duan'
+                        name 'duanymin'
+                        email 'support@admuing.com'
+                    }
+                }
+            }
+        }
+    }
+}
