@@ -33,6 +33,9 @@ AdMuing SDK弹幕SDK调用API进行弹幕展示，根据用户请求IP，AppKey,
 
 ### 注册[地址](http://register.admuing.com/)来获得AppKey
 
+### 项目依赖
+    
+    compile 'com.github.admuing:admuing:1.0'
 
 ### 权限
 
