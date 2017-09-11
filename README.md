@@ -39,9 +39,7 @@ AdMuing SDK Danmaku SDK call API Danmaku display, according to user requests, IP
 
 ## How to use
 
-### Register [address](http://register.admuing.com/)(url?_blank) to get 
-
-[我的博客](http://blog.csdn.net/guodongxiaren "悬停显示")
+### Register [address](http://register.admuing.com/) to get 
 
 ### dependencies 
     
