@@ -37,6 +37,9 @@ AdMuing SDK Danmaku SDK call API Danmaku display, according to user requests, IP
 
 ### Register [address](http://register.admuing.com/) to get AppKey
 
+### dependencies 
+    
+    compile 'com.github.admuing:admuing:1.0'
 
 ### permission
 
