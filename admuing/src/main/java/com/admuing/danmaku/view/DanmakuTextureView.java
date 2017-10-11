@@ -5,6 +5,9 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Message;
 import android.os.SystemClock;
 import android.text.TextUtils;
 import android.util.AttributeSet;
@@ -33,6 +36,7 @@ public class DanmakuTextureView extends SurfaceView implements SurfaceHolder.Cal
     private DanmakuCallback callback;
     //1 h 2 v
     private int type = 1;
+    private final static int H = 1, V = 2;
     private final static float fontSize = 64f;
     //最多行数
     private final static int lineCount = 10;
@@ -55,6 +59,9 @@ public class DanmakuTextureView extends SurfaceView implements SurfaceHolder.Cal
     private static final int MAX_RECORD_SIZE = 50;
     private static final int ONE_SECOND = 1000;
 
+    private HandlerThread handlerThread;
+    private Handler handler;
+
     public DanmakuTextureView(Context context) {
         super(context);
         init();
@@ -68,6 +75,14 @@ public class DanmakuTextureView extends SurfaceView implements SurfaceHolder.Cal
     public DanmakuTextureView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         init();
+    }
+
+    public void pause() {
+        this.pause = true;
+    }
+
+    public void resume() {
+        this.pause = false;
     }
 
     public void setFontColors(int[] fontColors) {
@@ -112,7 +127,32 @@ public class DanmakuTextureView extends SurfaceView implements SurfaceHolder.Cal
     public void surfaceCreated(SurfaceHolder holder) {
         textHeigth = 10 + getFontHeight(fontSize);
         loop = true;
-        new Thread(new drawRunable()).start();
+        //初始化首次要绘制的内容
+        for (int a = 0; a < lineCount; a++) {
+            if (a >= list.size()) {
+                setDanmakuItem(a);
+            }
+        }
+        startDraw();
+    }
+
+    @Override
+    public void surfaceDestroyed(SurfaceHolder holder) {
+        synchronized (this) {
+            loop = false;
+
+            if (handler != null) {
+                handler.removeCallbacksAndMessages(null);
+                handler = null;
+            }
+
+            if (handlerThread != null) {
+                handlerThread.quit();
+                handlerThread = null;
+            }
+
+            Log.d(TAG, "surfaceDestroyed  ");
+        }
     }
 
     private float fps() {
@@ -130,184 +170,167 @@ public class DanmakuTextureView extends SurfaceView implements SurfaceHolder.Cal
         return dtime > 0 ? mDrawTimes.size() * ONE_SECOND / dtime : 0.0f;
     }
 
-    @Override
-    public void surfaceDestroyed(SurfaceHolder holder) {
-        synchronized (this) {
-            loop = false;
-            Log.d(TAG, "surfaceDestroyed  ");
+    //记录上一次绘制的信息 key= line,value = 本行最后一个弹幕的结束绘制时间
+    private HashMap<Integer, Long> hashMap = new HashMap<>();
+    //需要绘制的弹幕信息
+    private List<DanmakuItem> list = new ArrayList<>();
+    private final LinkedList<DanmakuItem> cacheList = new LinkedList<>();
+
+
+    private void setDanmakuItem(int line) {
+        String subStrings = nextNews();
+        if (TextUtils.isEmpty(subStrings)) {
+            // 当没有更多弹幕的时候停止显示
+            Log.d(TAG, "empty subStrings");
+            if (callback != null) {
+                callback.noMore(getContext());
+            }
+            return;
         }
+        //颜色
+        int index = (int) (Math.random() * fontColors.length);
+        int color = fontColors[index];
+        DanmakuItem danmakuItem;
+        synchronized (cacheList) {
+            if (!cacheList.isEmpty()) {
+                danmakuItem = cacheList.pop();
+            } else {
+                danmakuItem = new DanmakuItem();
+            }
+        }
+        //记录绘制弹幕内容
+        danmakuItem.setContent(subStrings);
+        switch (type) {
+            case V: {
+                //偏移量
+                //记录本行弹幕绘制结束长度
+                float conlen = textHeigth;
+                hashMap.put(line, (long) (totalSpeed + conlen * (lineCount)));
+                danmakuItem.setX(0);
+                danmakuItem.setY(getHeight() + line * textHeigth);
+                danmakuItem.setSpeed((int) DanmakuTextureView.speed);
+                danmakuItem.setConlen(getHeight());
+                danmakuItem.setColor(Color.WHITE);
+            }
+            break;
+            case H:
+            default: {
+                //偏移量
+                int speed = size + subStrings.length();
+                if (speed > maxsize) {
+                    speed = maxsize;
+                }
+                //记录本行弹幕绘制结束长度
+                float conlen = paint.measureText(subStrings);
+                if (conlen < getWidth()) {
+                    conlen = getWidth();
+                }
+                hashMap.put(line, totalSpeed + (long) (conlen + margin) / (long) speed * DanmakuTextureView.speed);
+                danmakuItem.setX(getWidth());
+                danmakuItem.setY(textHeigth + line * textHeigth);
+                danmakuItem.setSpeed(speed);
+                danmakuItem.setConlen(conlen);
+                danmakuItem.setColor(color);
+            }
+            break;
+        }
+        list.add(danmakuItem);
     }
 
-    private class drawRunable implements Runnable {
-        //记录上一次绘制的信息 key= line,value = 本行最后一个弹幕的结束绘制时间
-        private HashMap<Integer, Long> hashMap = new HashMap<>();
-        //需要绘制的弹幕信息
-        private List<DanmakuItem> list = new ArrayList<>();
-        private final LinkedList<DanmakuItem> cacheList = new LinkedList<>();
-
-        drawRunable() {
-            //初始化首次要绘制的内容
-            for (int a = 0; a < lineCount; a++) {
-                if (a >= list.size()) {
-                    setDanmakuItem(a);
-                }
-            }
-        }
-
-        private void setDanmakuItem(int line) {
-            String subStrings = nextNews();
-            if (TextUtils.isEmpty(subStrings)) {
-                // 当没有更多弹幕的时候停止显示
-                Log.d(TAG, "empty subStrings");
-                if (callback != null) {
-                    callback.noMore(getContext());
-                }
-                return;
-            }
-            //颜色
-            int index = (int) (Math.random() * fontColors.length);
-            int color = fontColors[index];
-            DanmakuItem danmakuItem;
-            synchronized (cacheList) {
-                if (!cacheList.isEmpty()) {
-                    danmakuItem = cacheList.pop();
-                } else {
-                    danmakuItem = new DanmakuItem();
-                }
-            }
-            //记录绘制弹幕内容
-            danmakuItem.setContent(subStrings);
-            switch (type) {
-                case 2: {
-                    //偏移量
-                    //记录本行弹幕绘制结束长度
-                    float conlen = textHeigth;
-                    hashMap.put(line, (long) (totalSpeed + conlen * (lineCount)));
-                    danmakuItem.setX(0);
-                    danmakuItem.setY(getHeight() + line * textHeigth);
-                    danmakuItem.setSpeed((int) DanmakuTextureView.speed);
-                    danmakuItem.setConlen(getHeight());
-                    danmakuItem.setColor(Color.WHITE);
-                }
-                break;
-                case 1:
-                default: {
-                    //偏移量
-                    int speed = size + subStrings.length();
-                    if (speed > maxsize) {
-                        speed = maxsize;
-                    }
-                    //记录本行弹幕绘制结束长度
-                    float conlen = paint.measureText(subStrings);
-                    if (conlen < getWidth()) {
-                        conlen = getWidth();
-                    }
-                    hashMap.put(line, totalSpeed + (long) (conlen + margin) / (long) speed * DanmakuTextureView.speed);
-                    danmakuItem.setX(getWidth());
-                    danmakuItem.setY(textHeigth + line * textHeigth);
-                    danmakuItem.setSpeed(speed);
-                    danmakuItem.setConlen(conlen);
-                    danmakuItem.setColor(color);
-                }
-                break;
-            }
-            list.add(danmakuItem);
-        }
-
-        @Override
-        public void run() {
-            while (loop) {
-                synchronized (this) {
-                    try {
-                        Thread.sleep(speed);
-                    } catch (InterruptedException ex) {
-                        Log.e("TextSurfaceView", ex.getMessage() + "\n" + ex);
-                    }
-                    if (pause) {
-                        continue;
-                    }
+    public void startDraw() {
+        handlerThread = new HandlerThread("draw");
+        handlerThread.start();
+        handler = new Handler(handlerThread.getLooper()) {
+            @Override
+            public void handleMessage(Message msg) {
+                super.handleMessage(msg);
+                if (!pause) {
                     draw();
+                    totalSpeed = totalSpeed + speed;
                 }
-                totalSpeed = totalSpeed + speed;
+                if (loop) {
+                    sendEmptyMessageDelayed(0, speed);
+                }
             }
-        }
+        };
 
-        /**
-         * 画图
-         */
-        private void draw() {
-            if (mSurfaceHolder == null) {
-                return;
-            }
-            //锁定画布
-            Canvas canvas = mSurfaceHolder.lockCanvas();
-            if (canvas == null) {
-                return;
-            }
-            //清屏
-            clearCanvas(canvas);
-            //fps
+        handler.sendEmptyMessage(0);
+    }
+
+    /**
+     * 画图
+     */
+    private void draw() {
+        if (mSurfaceHolder == null) {
+            return;
+        }
+        //锁定画布
+        Canvas canvas = mSurfaceHolder.lockCanvas();
+        if (canvas == null) {
+            return;
+        }
+        //清屏
+        clearCanvas(canvas);
+        //fps
 //            String fps = String.format(Locale.getDefault(),
 //                    "fps %.2f", fps());
 //            DrawHelper.drawFPS(canvas, fps);
-            //画文字
-            drawTxt(canvas);
-            //判断是否需要添加新的弹幕
-            checkDanmaku();
-            //解锁显示
-            mSurfaceHolder.unlockCanvasAndPost(canvas);
-        }
+        //画文字
+        drawTxt(canvas);
+        //判断是否需要添加新的弹幕
+        checkDanmaku();
+        //解锁显示
+        mSurfaceHolder.unlockCanvasAndPost(canvas);
+    }
 
-        private void drawTxt(Canvas canvas) {
-            if (list.size() == 0) {
+    private void drawTxt(Canvas canvas) {
+        if (list.size() == 0) {
+            return;
+        }
+        Iterator<DanmakuItem> it = list.iterator();
+        while (it.hasNext()) {
+            DanmakuItem danmakuItem = it.next();
+            switch (type) {
+                case V:
+                    if (danmakuItem.getY() < getHeight() / 2) {
+                        cacheList.add(danmakuItem);
+                        it.remove();
+                    } else {
+                        danmakuItem.setY(danmakuItem.getY() - danmakuItem.getSpeed());
+                        paint.setColor(danmakuItem.getColor());
+                        canvas.drawText(danmakuItem.getContent(), danmakuItem.getX(), danmakuItem.getY(), paint);
+                    }
+                    break;
+                case H:
+                default:
+                    if (danmakuItem.getX() < -danmakuItem.getConlen()) {
+                        cacheList.add(danmakuItem);
+                        it.remove();
+                    } else {
+                        danmakuItem.setX(danmakuItem.getX() - danmakuItem.getSpeed());
+                        paint.setColor(danmakuItem.getColor());
+                        canvas.drawText(danmakuItem.getContent(), danmakuItem.getX(), danmakuItem.getY(), paint);
+                    }
+            }
+
+        }
+    }
+
+    private void checkDanmaku() {
+        if (hashMap == null || hashMap.isEmpty()) {
+            return;
+        }
+        for (int a = 0; a < lineCount; a++) {
+            Long time = hashMap.get(a);
+            if (time == null) {
                 return;
             }
-            Iterator<DanmakuItem> it = list.iterator();
-            while (it.hasNext()) {
-                DanmakuItem danmakuItem = it.next();
-                switch (type) {
-                    case 2:
-                        if (danmakuItem.getY() < getHeight() / 2) {
-                            cacheList.add(danmakuItem);
-                            it.remove();
-                        } else {
-                            danmakuItem.setY(danmakuItem.getY() - danmakuItem.getSpeed());
-                            paint.setColor(danmakuItem.getColor());
-                            canvas.drawText(danmakuItem.getContent(), danmakuItem.getX(), danmakuItem.getY(), paint);
-                        }
-                        break;
-                    case 1:
-                    default:
-                        if (danmakuItem.getX() < -danmakuItem.getConlen()) {
-                            cacheList.add(danmakuItem);
-                            it.remove();
-                        } else {
-                            danmakuItem.setX(danmakuItem.getX() - danmakuItem.getSpeed());
-                            paint.setColor(danmakuItem.getColor());
-                            canvas.drawText(danmakuItem.getContent(), danmakuItem.getX(), danmakuItem.getY(), paint);
-                        }
-                }
-
+            //最后一行弹幕是否已经走远了
+            boolean canAdd = totalSpeed >= time;
+            if (canAdd && contents != null && contents.size() > 0) {
+                setDanmakuItem(a);
             }
         }
-
-        private void checkDanmaku() {
-            if (hashMap == null || hashMap.isEmpty()) {
-                return;
-            }
-            for (int a = 0; a < lineCount; a++) {
-                Long time = hashMap.get(a);
-                if (time == null) {
-                    return;
-                }
-                //最后一行弹幕是否已经走远了
-                boolean canAdd = totalSpeed >= time;
-                if (canAdd && contents != null && contents.size() > 0) {
-                    setDanmakuItem(a);
-                }
-            }
-        }
-
     }
 
     private String nextNews() {
