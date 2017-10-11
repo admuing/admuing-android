@@ -10,9 +10,13 @@ AdMuing is a video advertising Danmaku enhancement tool,Is an open source projec
 
 ## Demo
 
-source code： **danmaku**
+![image](https://github.com/admuing/admuing-android/blob/master/screenshots/1.jpg)
 
-Demo：**danmakudemo** include unity,vungle demo
+![image](https://github.com/admuing/admuing-android/blob/master/screenshots/2.png)
+
+source code： **admuing**
+
+Demo：**admuingdemo** include unity,vungle demo
 
 ## Features
 -   Free：Completely free during use API，(Each key calls 10000 times per day because of server pressure)
@@ -35,7 +39,7 @@ AdMuing SDK Danmaku SDK call API Danmaku display, according to user requests, IP
 
 ## How to use
 
-### Register [address](http://register.admuing.com/) to get AppKey
+### [Register address](http://register.admuing.com/?recom=github) to get 
 
 ### dependencies 
     

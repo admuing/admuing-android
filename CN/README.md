@@ -8,9 +8,13 @@ AdMuing是一个视频广告弹幕增强工具，是由多年研究Google,Facebo
 
 ## 示例
 
-源码： **danmaku**
+![image](https://github.com/admuing/admuing-android/blob/master/screenshots/1.jpg)
 
-示例项目：**danmakudemo** 包括unity,vungle示例
+![image](https://github.com/admuing/admuing-android/blob/master/screenshots/2.png)
+
+源码： **admuing**
+
+示例项目：**admuingdemo** 包括unity,vungle示例
 
 ## 特色
 
@@ -31,7 +35,7 @@ AdMuing SDK弹幕SDK调用API进行弹幕展示，根据用户请求IP，AppKey,
 4. 根据用户所在国家，展示不同弹幕样式，例如：中国展示弹幕效果，美国地区展示评论滚动效果
 5. 弹幕颜色：根据不同国家的用户所喜欢的颜色和禁忌的颜色，展示不同弹幕颜色，例如，中国展示红，黄，蓝，沙特展示绿色，白色，印度展示橙色，白色，绿色
 
-### 注册[地址](http://register.admuing.com/)来获得AppKey
+### [注册地址](http://register.admuing.com/?recom=github)来获得AppKey
 
 ### 项目依赖
     
